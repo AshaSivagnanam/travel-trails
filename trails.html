@@ -1,0 +1,222 @@
+		<!DOCTYPE html>
+		<html>
+		  <head>
+		    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		    <meta charset="utf-8">
+		    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		    <title>Travel trails</title>
+		    <style>
+				#map {
+					height: 70%;
+					width : 70%;
+					left : 25%;
+					top : 16%;
+					position: absolute;
+					border : 2px solid;
+				}
+				#trails {
+					height: 70%;
+					width: 20%;
+					left : 2%;
+					top: 16%;
+					position: absolute;
+					border : 2px solid;
+				}
+				#panel {
+					height: 25%;
+					width: 85%;
+					left : 5%;
+					top : 90%;
+					position: absolute;
+					line-height: 200%;
+				}
+				.title {
+					display: table;
+					margin-right: auto;
+					margin-left: auto;
+				}
+				html, body {
+					height: 100%;
+					margin: 0;
+					padding: 0;
+					background-color: #E9F3F3;
+				}
+				ul {
+				    list-style-type: none;
+				    margin: 0;
+				    padding: 0;
+				    overflow: hidden;
+				}
+				li a {
+				    display: block;
+				    padding: 16px;
+				    text-decoration: none;
+				}
+				li a:hover {
+				    background-color: #2BA4C8;
+				    color: white;
+				    font-weight: bold;
+				}
+				#name {
+				    top: 17%;
+				    position: absolute;
+				    left: 34%;
+				    z-index: 20;
+				    font-weight: bold;
+				    font-size: 30px;
+				    color: blue;
+				}
+		    </style>
+		  </head>
+		  <body>
+		  	<h1 class="title">Travel Trails</h1>
+		  	<div id="trails">
+		  		<h3  class="title">Trails</h3>
+		  		<div id="trails-list"></div>
+		  	</div>
+		  	<div id="panel">
+		  		<h3> Trip summary </h3>
+		  		<div id="summary"></div>
+		  	</div>
+		  	<div id="name"></div>
+		    <div id="map"></div>
+		    <script>
+		    	var trails = [];
+		    	trails[0] = {"title" : "Surat to Bangalore", "places" :
+		    				[{"latlng" : {lat : 13.198979, lng : 77.706571} , "mode" : "DRIVING", "title" : "Kempegowda International Airport", "location" : "airport"}, 
+		    				{"latlng" : {lat : 12.800931, lng : 77.577714} , "mode" : "DRIVING", "title" : "Bannerghatta National Park", "location" : "attraction"},
+		    				{"latlng" : {lat : 13.009633, lng : 77.551071} , "mode" : "DRIVING", "title" : "ISKCON Bangalore", "location" : "attraction"},
+		    				{"latlng" : {lat : 12.966929, lng : 77.596229} , "mode" : "DRIVING", "title" : "ITC Gardenia", "location" : "hotel"},
+		    				{"latlng" : {lat : 13.370114, lng : 77.681977} , "mode" : "DRIVING", "title" : "Nandi Hills", "location" : "attraction"},
+		    				{"latlng" : {lat : 13.198979, lng : 77.706571} , "mode" : "DRIVING", "title" : "Kempegowda International Airport", "location" : "airport"}
+		    				]};
+		    	trails[1] = {"title" : "Nice to Paris", "places" :
+		    				[{"latlng" : {lat : 43.659963, lng : 7.214800}, "mode" : "air", "title" : "Nice Airport", "location" : "airport"}, 
+		    				{"latlng" : {lat : 48.726300, lng : 2.365011} , "mode" : "DRIVING", "title" : "Paris Orly Airport", "location" : "airport"},
+		    				{"latlng" : {lat : 48.858448, lng : 2.294953} , "mode" : "DRIVING", "title" : "Paris Eiffel tower", "location" : "attraction"},
+		    				{"latlng" : {lat : 48.860611, lng : 2.337575} , "mode" : "DRIVING", "title" : "Paris Louvre Museum", "location" : "attraction"},
+		    				{"latlng" : {lat : 49.009634, lng : 2.547753} , "mode" : "air", "title" : "Paris CDG Airport", "location" : "airport"},
+		    				{"latlng" : {lat : 43.659963, lng : 7.214800} , "mode" : "air", "title" : "Nice Airport", "location" : "airport"}
+		    				]};
+		    	trails[2] = {"title" : "Mishima to Tokyo", "places" :
+		    				[{"latlng" : {lat : 35.127137, lng : 138.910624}, "mode" : "air", "title" : "Mishima Station", "location" : "station"}, 
+		    				{"latlng" : {lat : 35.676410, lng : 139.699356} , "mode" : "DRIVING", "title" : "Meiji Jingu Shinto shrine", "location" : "attraction"},
+		    				{"latlng" : {lat : 35.671756, lng : 139.694963} , "mode" : "DRIVING", "title" : "Yoyogi Park", "location" : "attraction"},
+		    				{"latlng" : {lat : 35.658587, lng : 139.745451} , "mode" : "DRIVING", "title" : "Tokyo Tower", "location" : "attraction"},
+		    				{"latlng" : {lat : 35.670231, lng : 139.702736} , "mode" : "air", "title" : "Harajuku ", "location" : "shopping"},
+		    				{"latlng" : {lat : 35.127137, lng : 138.910624}, "mode" : "air", "title" : "Mishima Station", "location" : "station"}
+		    				]};		    				
+
+			    var map;
+			    var renderers = [], services = [];
+			    var lists = "<ul style='none'>";
+			    for(var x in trails) {
+			    	lists += "<li id='trail-" + parseInt(x) + "'> <a href='#'>" + trails[x]["title"] + "</a></li>";
+			    }
+			    lists += "</ul>";
+			    $("#trails-list").html(lists);
+			    $("a").click(function(){
+			    	var id = $(this).parent().attr('id');
+			    	var item = id.split("-");
+			    	initMap(item[1]);
+			    });
+				function initMap(item) {
+					if(item == undefined)
+						item = 0;
+					var places = trails[item]["places"];
+					$("#name").html(trails[item]["title"]);
+					var summary = "";
+					for(var index in places) {
+						summary += (parseInt(index) + 1) + " . " + places[index]["title"] + ", ";
+						summary += "Mode : " + places[index]["mode"];
+						if(index == places.length-1)
+							continue;
+						summary += "&emsp;&emsp;&#8594;&emsp;&emsp;";
+					}
+					$("#summary").html(summary);
+
+					map = new google.maps.Map(document.getElementById('map'), {
+						zoom: 4, //need to auto calculate based on distance in between
+						center: places[1]["latlng"]
+					});
+					
+					var directionsService = new google.maps.DirectionsService();
+					var directionsDisplay = new google.maps.DirectionsRenderer({
+						suppressMarkers: true,
+						polylineOptions : {strokeColor:'blue'},
+						map:map
+					});
+					var request = {
+						travelMode : google.maps.TravelMode.DRIVING,
+						transitOptions: {modes:['TRAIN']}
+					};
+
+					var markers = [];
+					for(var index in places) {
+
+						console.log("latlng - " + places[index]);
+						var icon = "";
+						switch(places[index]["location"]) {
+							case "airport": icon = "/images/plane.jpg";break;
+							case "station": icon = "/images/train.png";break;
+							case "attraction": icon = "/images/tower.jpg";break;
+							default : break;							
+						}
+						var marker =  new google.maps.Marker({
+							position : places[index]["latlng"],
+							label : (parseInt(index) + 1).toString(),
+							//icon : icon,
+							map : map
+							//map : map --- //no label and map as waypoints ll do the same
+						});
+						markers.push(marker);
+						var content = places[index]["title"];
+						var infowindow = new google.maps.InfoWindow();
+						//mouseover marker
+						google.maps.event.addListener(marker,'mouseover', (function(marker,content,infowindow){ 
+					        return function() {
+					           infowindow.setContent(content);
+					           infowindow.open(map,marker);
+					        };
+					    })(marker,content,infowindow)); 
+					    //mouseout marker
+						google.maps.event.addListener(marker,'mouseout', (function(marker,content,infowindow){ 
+					        return function() {
+					           infowindow.close(map,marker);
+					        };
+					    })(marker,content,infowindow)); 
+
+						//drawing directions
+						if(index == 0)
+							request.origin = places[index]["latlng"];
+						else if(index == places.length-1){
+							request.destination = places[index]["latlng"];
+						}
+						else {
+							if(!request.waypoints)
+								request.waypoints = [];
+							request.waypoints.push({
+								location : places[index]["latlng"],
+								stopover : true
+							});
+						}
+					}
+					directionsService.route(request, function(result, status){
+						if(status == google.maps.DirectionsStatus.OK) {
+  						    directionsDisplay.setDirections(result);
+					    }
+						else {
+		            		window.alert('Directions request failed due to ' + status);
+		        		}
+					});
+
+					google.maps.event.addListener(directionsDisplay,'mouseover', function(event){
+						alert("hello");
+					});
+				}
+		    </script>
+		    <script async defer
+		    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFnLAcPy5W6yI5g_9MHUUAXLyqNYmZAWU&libraries=geometry&callback=initMap">
+		    </script>
+		  </body>
+		</html>
